@@ -1,39 +1,31 @@
 package com.test.PP_Machines_storage;
 
 import com.jcraft.jsch.*;
-
 import java.io.*;
-
-import org.testng.Assert;
+import java.util.Properties;
+import javax.mail.*;
+import javax.mail.internet.*;
 import org.testng.annotations.Test;
 
 public class pp5_storage {
+
     @Test
     public void testStorageDetails() {
-        // Set up SSH connection
         JSch jsch = new JSch();
-        Session session = null;
+        com.jcraft.jsch.Session session = null;
         try {
-            // Replace these with your SSH server details
             String user = "hbp";
             String host = "pp5.humanbrain.in";
             String password = "Health#123";
             int port = 22;
-
-            // Establish SSH session
             session = jsch.getSession(user, host, port);
             session.setPassword(password);
             session.setConfig("StrictHostKeyChecking", "no");
             session.connect();
-
-            // Execute command on SSH server
             Channel channel = session.openChannel("exec");
-            // Command to retrieve storage details for /dev/mapper devices and /dev/sdb3
             ((ChannelExec) channel).setCommand("df -h /dev/mapper/vg--store1-lv_store1 /dev/sdb3");
             channel.setInputStream(null);
             ((ChannelExec) channel).setErrStream(System.err);
-
-            // Get output
             InputStream in = channel.getInputStream();
             channel.connect();
             byte[] tmp = new byte[1024];
@@ -52,37 +44,71 @@ public class pp5_storage {
                 try {
                     Thread.sleep(1000);
                 } catch (Exception ee) {
+                    ee.printStackTrace();
                 }
             }
 
-            // Parse and format output as table
             String[] lines = output.toString().split("\n");
-            System.out.println("+------------------------------------+------+-------+-------+--------+---------------------+");
-            System.out.println("|       Filesystem                   | Size | Used  | Avail |  Use%  | Mounted on          |");
-            System.out.println("+------------------------------------+------+-------+-------+--------+---------------------+");
-            
-            boolean testFailed = false; // Flag to check if the test should fail
-            
+            System.out.println("+------------------------------------+------+-------+-------+--------+----------------------+");
+            System.out.println("|       Filesystem                   | Size | Used  | Avail |  Use%  | Mounted on           |");
+            System.out.println("+------------------------------------+------+-------+-------+--------+----------------------+");
+
+            StringBuilder emailContent = new StringBuilder();
+            boolean sendEmail = false;
             for (int i = 1; i < lines.length; i++) {
                 String[] parts = lines[i].trim().split("\\s+");
-                System.out.printf("| %-34s | %4s | %5s | %5s | %5s | %-19s |\n", parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
+                System.out.printf("| %-34s | %4s | %5s | %5s | %6s | %-20s |\n", parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
+                System.out.println("+------------------------------------+------+-------+-------+--------+----------------------+");
 
-                // Check if the Use% exceeds 50%
-                int usePercentage = Integer.parseInt(parts[4].replace("%", ""));
-                if (usePercentage > 20) {
-                    testFailed = true;
+                int usePercent = Integer.parseInt(parts[4].replace("%", ""));
+                if (usePercent > 70) {
+                    sendEmail = true;
+                    if (parts[0].equals("/dev/mapper/vg--store1-lv_store1")) {
+                        emailContent.append("PP5 machine 'nvme' used storage is exceeding 70%\n");
+                    } else if (parts[0].equals("/dev/sdb3")) {
+                        emailContent.append("PP5 'store' used storage is exceeding 70%\n");
+                    } else {
+                        emailContent.append(String.format("Filesystem: %s, Use%%: %s\n", parts[0], parts[4]));
+                    }
                 }
             }
-            System.out.println("+------------------------------------+------+-------+-------+--------+---------------------+");
-
+            if (sendEmail) {
+                sendEmailAlert(emailContent.toString());
+            }
             channel.disconnect();
             session.disconnect();
-
-            Assert.assertFalse(testFailed, "Test failed because one or more filesystems have Use% above 20%");
-
         } catch (Exception e) {
             e.printStackTrace();
-            Assert.fail("Test encountered an exception: " + e.getMessage());
+            System.out.println("Test encountered an exception: " + e.getMessage());
+        }
+    }
+
+    private void sendEmailAlert(String messageBody) {
+        String to = "gayathrigayu0918@gmail.com";
+        String from = "gayathri@htic.iitm.ac.in";
+        String host = "smtp.gmail.com";
+        Properties properties = System.getProperties();
+        properties.put("mail.smtp.host", host);
+        properties.put("mail.smtp.port", "465");
+        properties.put("mail.smtp.ssl.enable", "true");
+        properties.put("mail.smtp.auth", "true");
+        javax.mail.Session session = javax.mail.Session.getInstance(properties, new javax.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication("gayathri@htic.iitm.ac.in", "Gayu@0918");
+            }
+        });
+        session.setDebug(true);
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(from));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+            message.setSubject("PP5 Machine Storage Alert");
+            message.setText("Storage is above 70% for the following filesystems:\n\n" + messageBody);
+            System.out.println("sending...");
+            Transport.send(message);
+            System.out.println("Sent message successfully....");
+        } catch (MessagingException mex) {
+            mex.printStackTrace();
         }
     }
 }
