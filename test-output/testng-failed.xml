@@ -3,11 +3,11 @@
 <suite name="Failed suite [Default suite]" guice-stage="DEVELOPMENT">
   <test thread-count="5" name="Default test(failed)">
     <classes>
-      <class name="com.test.PP_Machines_storage.pp5_storage">
+      <class name="com.test.PP_Machines_storage.New_Image_Out">
         <methods>
           <include name="testStorageDetails"/>
         </methods>
-      </class> <!-- com.test.PP_Machines_storage.pp5_storage -->
+      </class> <!-- com.test.PP_Machines_storage.New_Image_Out -->
     </classes>
   </test> <!-- Default test(failed) -->
 </suite> <!-- Failed suite [Default suite] -->

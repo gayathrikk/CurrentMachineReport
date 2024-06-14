@@ -80,7 +80,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.0.0-M5</version>
           <configuration>
-            <test> com.test.PP_Machines_storage.pp5_storage</test>
+            <test> com.test.PP_Machines_storage.dgx3_user_storage</test>
           </configuration>
         </plugin>
       </plugins>

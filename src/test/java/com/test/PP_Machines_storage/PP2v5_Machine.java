@@ -1,13 +1,23 @@
 package com.test.PP_Machines_storage;
 
-import com.jcraft.jsch.*;
-import java.io.*;
+import java.io.InputStream;
 import java.util.Properties;
-import javax.mail.*;
-import javax.mail.internet.*;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
 import org.testng.annotations.Test;
 
-public class pp5_storage {
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSch;
+
+public class PP2v5_Machine {
+	
 
     @Test
     public void testStorageDetails() {
@@ -15,7 +25,7 @@ public class pp5_storage {
         com.jcraft.jsch.Session session = null;
         try {
             String user = "hbp";
-            String host = "pp5.humanbrain.in";
+            String host = "pp2.humanbrain.in";
             String password = "Health#123";
             int port = 22;
             session = jsch.getSession(user, host, port);
@@ -23,7 +33,7 @@ public class pp5_storage {
             session.setConfig("StrictHostKeyChecking", "no");
             session.connect();
             Channel channel = session.openChannel("exec");
-            ((ChannelExec) channel).setCommand("df -h /dev/mapper/vg--store1-lv_store1 /dev/sdb3");
+            ((ChannelExec) channel).setCommand("df -h /dev/nvme1n1p1 ");
             channel.setInputStream(null);
             ((ChannelExec) channel).setErrStream(System.err);
             InputStream in = channel.getInputStream();
@@ -61,14 +71,10 @@ public class pp5_storage {
                 System.out.println("+------------------------------------+------+-------+-------+--------+----------------------+");
 
                 int usePercent = Integer.parseInt(parts[4].replace("%", ""));
-                if (usePercent > 40) {
+                if (usePercent > 70) {
                     sendEmail = true;
-                    if (parts[0].equals("/dev/mapper/vg--store1-lv_store1")) {
-                        emailContent.append("PP5 machine 'nvme' used storage is exceeding 70%\n");
-                    } else if (parts[0].equals("/dev/sdb3")) {
-                        emailContent.append("PP5 'store' used storage is exceeding 40%\n");
-                    } else {
-                        emailContent.append(String.format("Filesystem: %s, Use%%: %s\n", parts[0], parts[4]));
+                    if (parts[0].equals("/dev/nvme1n1p1")) {
+                        emailContent.append("pp2v5.humanbrain.in nvmeShare used storage is exceeding 70%\n");
                     }
                 }
             }
@@ -102,8 +108,8 @@ public class pp5_storage {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject("PP5 Machine Storage Alert");
-            message.setText("Storage is above 70% for the following filesystems:\n\n" + messageBody);
+            message.setSubject("PP2v5 Machine Storage Alert");
+            message.setText("This is an automatically generated email, \n\nSTORAGE ALERT!!!\n" + messageBody);
             System.out.println("sending...");
             Transport.send(message);
             System.out.println("Sent message successfully....");
