@@ -19,9 +19,9 @@ public class dgx3_user_storage {
         JSch jsch = new JSch();
         com.jcraft.jsch.Session session = null;
         try {
-            String user = "hbp";  
+            String user = "appUser";  
             String host = "dgx3.humanbrain.in";
-            String password = "Health#123"; 
+            String password = "Brain@123"; 
             int port = 22;
             session = jsch.getSession(user, host, port);
             session.setPassword(password);
@@ -144,6 +144,7 @@ public class dgx3_user_storage {
             case "sasi": return "sasikumar.c@htic.iitm.ac.in";
             case "sathes": return "satheskumar@htic.iitm.ac.in";
             case "shailesh": return "shailxiitm@gmail.com";
+            case "shubham": return "";
             case "siva": return "sivathanun@htic.iitm.ac.in";
             case "sriram": return "sriramv@htic.iitm.ac.in";
             case "supriti": return "supriti-supriti@htic.iitm.ac.in";
