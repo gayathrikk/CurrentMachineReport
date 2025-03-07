@@ -7,7 +7,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import com.jcraft.jsch.Session;
-
+import java.util.Properties;
 
 public class FileCheckerAndEmailNotifier {
     private static final int PORT = 22;
