@@ -118,8 +118,8 @@ public class FileCheckerAndEmailNotifier {
     }
 
     private static void sendEmail(String subject, String body) {
-        final String fromEmail = "gayathri@htic.iitm.ac.in";
-        final String fromPassword = "Gayu@0918";
+        final String fromEmail = "automationsoftware25@gmail.com";
+        final String fromPassword = "wjzcgaramsqvagxu";
         final String toEmail = "divya.d@htic.iitm.ac.in";
 
         Properties properties = new Properties();
